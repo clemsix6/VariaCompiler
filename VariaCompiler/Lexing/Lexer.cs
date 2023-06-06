@@ -19,6 +19,7 @@ public partial class Lexer
     [GeneratedRegex("\\{")] private static partial Regex RegLeftBrace();
     [GeneratedRegex("\\}")] private static partial Regex RegRightBrace();
     [GeneratedRegex("\\;")] private static partial Regex RegSemicolon();
+    [GeneratedRegex("\\,")] private static partial Regex RegComma();
 
     [GeneratedRegex("func")]   private static partial Regex RegFunc();
     [GeneratedRegex("var")]    private static partial Regex RegVar();
@@ -45,6 +46,7 @@ public partial class Lexer
         this._tokenDefinitions.Add(TokenType.LeftBrace,        RegLeftBrace());
         this._tokenDefinitions.Add(TokenType.RightBrace,       RegRightBrace());
         this._tokenDefinitions.Add(TokenType.SemiColon,        RegSemicolon());
+        this._tokenDefinitions.Add(TokenType.Comma,            RegComma());
 
         this._tokenDefinitions[TokenType.Func]   = RegFunc();
         this._tokenDefinitions[TokenType.Var]    = RegVar();

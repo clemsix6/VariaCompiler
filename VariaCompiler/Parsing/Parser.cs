@@ -10,12 +10,15 @@ public class Parser
     private int         _index;
 
 
-    public Node Parse(List<Token> tokens)
+    public ProgramNode Parse(List<Token> tokens)
     {
         this._index  = 0;
         this._tokens = tokens;
 
-        return ParseFunctionDeclaration();
+        var functions = new List<Node>();
+        while (this._index < this._tokens.Count) functions.Add(ParseFunctionDeclaration());
+
+        return new ProgramNode(functions);
     }
 
 
@@ -71,6 +74,7 @@ public class Parser
             }
             case TokenType.Identifier:
             {
+                if (this._tokens[this._index + 1].Type == TokenType.LeftParenthesis) return ParseFunctionCall();
                 return ParseAssignment();
             }
             default:
@@ -85,7 +89,11 @@ public class Parser
     {
         var name = this._tokens[this._index++];
 
-        if (this._tokens[this._index].Type != TokenType.Equals) throw new Exception("= expected");
+        if (this._tokens[this._index].Type != TokenType.Equals) {
+            this._tokens.Insert(this._index, new Token(TokenType.SemiColon, ";"));
+            this._tokens.Insert(this._index, new Token(TokenType.Number,    "0"));
+            this._tokens.Insert(this._index, new Token(TokenType.Equals,    "="));
+        }
 
         this._index++;
         var expression = ParseExpression();
@@ -102,12 +110,20 @@ public class Parser
         var name = this._tokens[this._index++];
 
         if (this._tokens[this._index].Type != TokenType.Equals) {
-            this._tokens.Insert(this._index,     new Token(TokenType.Equals, "="));
-            this._tokens.Insert(this._index + 1, new Token(TokenType.Number, "0"));
+            this._tokens.Insert(this._index, new Token(TokenType.SemiColon, ";"));
+            this._tokens.Insert(this._index, new Token(TokenType.Number,    "0"));
+            this._tokens.Insert(this._index, new Token(TokenType.Equals,    "="));
         }
 
         this._index++;
-        var expression = ParseExpression();
+
+        Node expression;
+        if (this._tokens[this._index].Type     == TokenType.Identifier
+         && this._tokens[this._index + 1].Type == TokenType.LeftParenthesis)
+            expression = ParseFunctionCall();
+        else
+            expression = ParseExpression();
+
         if (this._tokens[this._index].Type != TokenType.SemiColon) throw new Exception("; expected");
         this._index++;
         return new AssignmentNode(name, expression);
@@ -146,6 +162,28 @@ public class Parser
     }
 
 
+    private Node ParseFunctionCall()
+    {
+        var functionName = this._tokens[this._index++];
+
+        if (this._tokens[this._index].Type != TokenType.LeftParenthesis) throw new Exception("( expected");
+        this._index++;
+
+        var arguments = new List<Node>();
+        while (this._tokens[this._index].Type != TokenType.RightParenthesis) {
+            arguments.Add(ParseExpression());
+
+            if (this._tokens[this._index].Type == TokenType.Comma)
+                this._index++;
+            else if (this._tokens[this._index].Type != TokenType.RightParenthesis)
+                throw new Exception(", or ) expected");
+        }
+
+        this._index++;
+        return new FunctionCallNode(functionName, arguments);
+    }
+
+
     private Node ParseFactor()
     {
         switch (this._tokens[this._index].Type) {
@@ -164,7 +202,9 @@ public class Parser
             }
             case TokenType.Identifier:
             {
-                var token = this._tokens[this._index++];
+                var token = this._tokens[this._index];
+                if (this._tokens[this._index + 1].Type == TokenType.LeftParenthesis) return ParseFunctionCall();
+                this._index++;
                 return new IdentifierNode(token);
             }
             default: throw new Exception("Number, identifier or ( expected");

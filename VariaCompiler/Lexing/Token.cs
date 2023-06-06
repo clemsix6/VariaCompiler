@@ -15,6 +15,7 @@ public enum TokenType
     LeftBrace,
     RightBrace,
     SemiColon,
+    Comma,
 
     //keywords
     Func,

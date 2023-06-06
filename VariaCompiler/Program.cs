@@ -1,4 +1,4 @@
-﻿using VariaCompiler.Detailing;
+﻿using VariaCompiler.Compiling;
 using VariaCompiler.Lexing;
 using VariaCompiler.Parsing;
 using VariaCompiler.Parsing.Nodes;
@@ -26,7 +26,7 @@ internal class Program
     }
 
 
-    private static Node Parse(List<Token> tokens)
+    private static ProgramNode Parse(List<Token> tokens)
     {
         Console.WriteLine("\n\nParsing...");
         var parser = new Parser();
@@ -36,7 +36,7 @@ internal class Program
     }
 
 
-    private static string Detail(Node node)
+    private static string Detail(ProgramNode node)
     {
         Console.WriteLine("\n\nDetailing...");
         var detailer = new Detailer();
