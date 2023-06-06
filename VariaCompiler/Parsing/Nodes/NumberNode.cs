@@ -20,4 +20,10 @@ public class NumberNode : Node
         for (var i = 0; i < nest; i++) Console.Write("\t");
         Console.WriteLine($"Number: {this.Token.Value}");
     }
+
+
+    public override List<Node> GetChildren()
+    {
+        return new List<Node>();
+    }
 }

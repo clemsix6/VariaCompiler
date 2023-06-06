@@ -22,4 +22,10 @@ public class AssignmentNode : Node
         Console.Write($"Var {this.Name.Value} = ");
         this.Expression.Visit(nest);
     }
+
+
+    public override List<Node> GetChildren()
+    {
+        return new List<Node> {this.Expression};
+    }
 }

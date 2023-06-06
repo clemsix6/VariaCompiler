@@ -19,4 +19,10 @@ public class BlockNode : Node
         for (var i = 0; i < nest; i++) Console.Write("\t");
         Console.WriteLine("Block end");
     }
+
+
+    public override List<Node> GetChildren()
+    {
+        return this.Statements;
+    }
 }

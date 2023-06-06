@@ -25,4 +25,10 @@ public class OperatorNode : Node
         this.Left.Visit(nest  + 1);
         this.Right.Visit(nest + 1);
     }
+
+
+    public override List<Node> GetChildren()
+    {
+        return new List<Node> {this.Left, this.Right};
+    }
 }

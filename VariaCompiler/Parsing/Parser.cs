@@ -69,11 +69,29 @@ public class Parser
             {
                 return ParseIntDeclaration();
             }
+            case TokenType.Identifier:
+            {
+                return ParseAssignment();
+            }
             default:
             {
                 throw new Exception("Invalid statement");
             }
         }
+    }
+
+
+    private Node ParseAssignment()
+    {
+        var name = this._tokens[this._index++];
+
+        if (this._tokens[this._index].Type != TokenType.Equals) throw new Exception("= expected");
+
+        this._index++;
+        var expression = ParseExpression();
+        if (this._tokens[this._index].Type != TokenType.SemiColon) throw new Exception("; expected");
+        this._index++;
+        return new AssignmentNode(name, expression);
     }
 
 
@@ -83,20 +101,16 @@ public class Parser
         if (this._tokens[this._index].Type != TokenType.Identifier) throw new Exception("Variable name expected");
         var name = this._tokens[this._index++];
 
-        if (this._tokens[this._index].Type == TokenType.Equals) {
-            this._index++;
-            var expression = ParseExpression();
-            if (this._tokens[this._index].Type != TokenType.SemiColon) throw new Exception("; expected");
-            this._index++;
-            return new AssignmentNode(name, expression);
-        }
-        else if (this._tokens[this._index].Type != TokenType.SemiColon) {
-            throw new Exception("; expected");
+        if (this._tokens[this._index].Type != TokenType.Equals) {
+            this._tokens.Insert(this._index,     new Token(TokenType.Equals, "="));
+            this._tokens.Insert(this._index + 1, new Token(TokenType.Number, "0"));
         }
 
         this._index++;
-
-        return new IntNode(keyword, name);
+        var expression = ParseExpression();
+        if (this._tokens[this._index].Type != TokenType.SemiColon) throw new Exception("; expected");
+        this._index++;
+        return new AssignmentNode(name, expression);
     }
 
 

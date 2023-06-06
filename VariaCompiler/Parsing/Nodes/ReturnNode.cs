@@ -17,4 +17,10 @@ public class ReturnNode : Node
         Console.WriteLine("Return");
         this.Expression.Visit(nest);
     }
+
+
+    public override List<Node> GetChildren()
+    {
+        return new List<Node> {this.Expression};
+    }
 }

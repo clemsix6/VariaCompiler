@@ -21,4 +21,10 @@ public class IntNode : Node
         for (var i = 0; i < nest; i++) Console.Write("\t");
         Console.WriteLine($"Var {this.Keyword.Value} {this.Name.Value}");
     }
+
+
+    public override List<Node> GetChildren()
+    {
+        return new List<Node>();
+    }
 }

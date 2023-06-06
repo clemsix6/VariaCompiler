@@ -23,4 +23,10 @@ public class FunctionDeclarationNode : Node
         Console.WriteLine($"Function declaration: {this.ReturnType.Value} {this.Name.Value}");
         this.Body.Visit(nest + 1);
     }
+
+
+    public override List<Node> GetChildren()
+    {
+        return new List<Node> {this.Body};
+    }
 }
