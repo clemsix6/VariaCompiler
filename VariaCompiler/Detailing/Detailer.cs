@@ -67,11 +67,10 @@ public class Detailer
             left = $"\tmov eax, dword ptr [rbp-{this._functionVariables[this.currentFunction][idNode1.Name.Value]}]";
         else
             throw new Exception("Unsupported operand type");
-        AppendLine("\n" + left, "Left side of operation");
 
         string? right = null;
         if (op.Right is OperatorNode opNode)
-            left = $"\tmov eax, {GetVariableStack(Visit(opNode))}";
+            right = $"\tmov ebx, {GetVariableStack(Visit(opNode))}";
         else if (op.Right is NumberNode numNode)
             right = $"\tmov ebx, {numNode.Token.Value}";
         else if (op.Right is IdentifierNode idNode)
@@ -79,6 +78,8 @@ public class Detailer
                 $"\tmov ebx, dword ptr [rbp-{this._functionVariables[this.currentFunction][idNode.Name.Value]}]";
         else
             throw new Exception("Unsupported operand type");
+        
+        AppendLine("\n" + left, "Left side of operation");
         AppendLine(right, "Right side of operation");
 
         var operation = "";
