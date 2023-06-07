@@ -24,9 +24,8 @@ public class Parser
 
     private Node ParseFunctionDeclaration()
     {
-        if (this._tokens[this._index].Type != TokenType.Identifier)
-            throw new Exception("Function return type expected");
-        var returnType = this._tokens[this._index++];
+        if (this._tokens[this._index].Type != TokenType.Func) throw new Exception("func keyword expected");
+        this._index++;
 
         if (this._tokens[this._index].Type != TokenType.Identifier) throw new Exception("Function name expected");
         var functionName = this._tokens[this._index++];
@@ -34,12 +33,41 @@ public class Parser
         if (this._tokens[this._index].Type != TokenType.LeftParenthesis) throw new Exception("( expected");
         this._index++;
 
+        var parameters = ParseParameters();
+
         if (this._tokens[this._index].Type != TokenType.RightParenthesis) throw new Exception(") expected");
         this._index++;
 
+        if (this._tokens[this._index].Type != TokenType.BuiltinType)
+            throw new Exception("Function return type expected");
+        var returnType = this._tokens[this._index++];
+
         var body = ParseBlock();
 
-        return new FunctionDeclarationNode(returnType, functionName, body);
+        return new FunctionDeclarationNode(returnType, functionName, parameters, body);
+    }
+
+
+    private List<ParameterNode> ParseParameters()
+    {
+        var parameters = new List<ParameterNode>();
+
+        while (this._tokens[this._index].Type != TokenType.RightParenthesis) {
+            if (this._tokens[this._index].Type != TokenType.Identifier) throw new Exception("Parameter type expected");
+            var parameterType = this._tokens[this._index++];
+
+            if (this._tokens[this._index].Type != TokenType.Identifier) throw new Exception("Parameter name expected");
+            var parameterName = this._tokens[this._index++];
+
+            parameters.Add(new ParameterNode(parameterType, parameterName));
+
+            if (this._tokens[this._index].Type == TokenType.Comma)
+                this._index++;
+            else if (this._tokens[this._index].Type != TokenType.RightParenthesis)
+                throw new Exception(", or ) expected");
+        }
+
+        return parameters;
     }
 
 
@@ -68,9 +96,10 @@ public class Parser
                 this._index++;
                 return new ReturnNode(expression);
             }
-            case TokenType.Int:
+            case TokenType.Var:
+            case TokenType.BuiltinType:
             {
-                return ParseIntDeclaration();
+                return ParseVarDeclaration();
             }
             case TokenType.Identifier:
             {
@@ -82,6 +111,25 @@ public class Parser
                 throw new Exception("Invalid statement");
             }
         }
+    }
+
+
+    private Node ParseVarDeclaration()
+    {
+        var type = this._tokens[this._index++];
+        if (this._tokens[this._index].Type != TokenType.Identifier) throw new Exception("Variable name expected");
+        var name = this._tokens[this._index++];
+
+        Node expression = null;
+        if (this._tokens[this._index].Type == TokenType.Equals) {
+            this._index++;
+            expression = ParseExpression();
+        }
+
+        if (this._tokens[this._index].Type != TokenType.SemiColon) throw new Exception("; expected");
+        if (expression                     == null) throw new Exception("Variable declaration must have an expression");
+        this._index++;
+        return new AssignmentNode(name, expression, type.Type != TokenType.Var ? type : null);
     }
 
 
@@ -103,9 +151,9 @@ public class Parser
     }
 
 
-    private Node ParseIntDeclaration()
+    private Node ParseBuiltinTypeDeclaration()
     {
-        var keyword = this._tokens[this._index++];
+        var type = this._tokens[this._index++];
         if (this._tokens[this._index].Type != TokenType.Identifier) throw new Exception("Variable name expected");
         var name = this._tokens[this._index++];
 

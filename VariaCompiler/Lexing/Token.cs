@@ -20,7 +20,7 @@ public enum TokenType
     //keywords
     Func,
     Var,
-    Int,
+    BuiltinType,
 
     //other
     Identifier,

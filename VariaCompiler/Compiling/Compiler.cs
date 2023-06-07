@@ -19,7 +19,6 @@ public class Detailer
     public string Compile(ProgramNode node)
     {
         var builder = new StringBuilder();
-        builder.AppendLine(".globl  main\n");
 
         Visit(node);
         foreach (var function in this.functions) builder.AppendLine(function.ToString());
@@ -30,7 +29,7 @@ public class Detailer
     private void Visit(ProgramNode node)
     {
         foreach (var nodeFunction in node.Functions) {
-            var function = new Function((FunctionDeclarationNode) nodeFunction);
+            var function = new Function((FunctionDeclarationNode) nodeFunction, this.functions);
             this.functions.Add(function);
             this.currentFunction = function;
         }

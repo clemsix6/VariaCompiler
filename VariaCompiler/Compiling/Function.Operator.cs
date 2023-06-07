@@ -1,74 +1,80 @@
-﻿using VariaCompiler.Parsing.Nodes;
+﻿using VariaCompiler.Compiling.Instructions;
+using VariaCompiler.Compiling.Instructions.Operations;
+using VariaCompiler.Parsing.Nodes;
 
 
 namespace VariaCompiler.Compiling;
 
 public partial class Function
 {
-    private string Visit(OperatorNode op, AssignmentNode? assignmentNode = null, bool eax = false)
+    private Ptr Visit(OperatorNode op, Ptr? assignement)
     {
-        var left  = GetOperand(op.Left,  "eax");
-        var right = GetOperand(op.Right, "ebx");
+        var left       = GetOperand(op.Left,  Words.RegisterType.A, out var instruction1, out var size1);
+        var right      = GetOperand(op.Right, Words.RegisterType.B, out var instruction2, out var size2);
+        var size       = size1 > size2 ? size1 : size2;
+        var axRegister = new Register(Words.RegisterType.A, size);
 
-        if (left  != null) AppendLine("\n" + left, "Left side of operation");
-        if (right != null) AppendLine(right,       "Right side of operation");
+        if (instruction1 != null && !axRegister.Equals(instruction1.Source))
+            this._instructions.Add(new MovInstruction(axRegister, instruction1.Source));
+        if (instruction2 != null) {
+            var target = new Register(Words.RegisterType.B, size);
+            this._instructions.Add(new MovInstruction(target, instruction2.Source));
+        }
 
-        var operation = PerformOperation(op);
-        AppendLine(operation);
+        if (right.Size != left.Size) {
+            var bxRegister = new Register(Words.RegisterType.B, size);
+            this._instructions.Add(new OperationInstruction(axRegister, bxRegister, op.OperatorToken.Value));
+        }
+        else {
+            this._instructions.Add(new OperationInstruction(axRegister, right, op.OperatorToken.Value));
+        }
 
-        if (assignmentNode != null) return AssignResult(operation, assignmentNode);
-        if (!eax) return TempResult(operation);
-        return "eax";
+        if (assignement == null) return left;
+        if (!left.Equals(assignement)) this._instructions.Add(new MovInstruction(left, assignement));
+        return assignement;
     }
 
 
-    private string? GetOperand(Node node, string register)
+    private Ptr GetOperand(Node node, Words.RegisterType suffix, out MovInstruction? instruction, out int size)
     {
         switch (node) {
-            case OperatorNode opNode: return Visit(opNode);
-            case NumberNode numNode:  return $"\tmov {register}, {numNode.Token.Value}";
+            case OperatorNode opNode:
+            {
+                var result = Visit(opNode, null);
+                size        = Words.GetTypeSize(result.GetType());
+                instruction = new MovInstruction(new Register(suffix), result);
+                return new Register(suffix);
+            }
+            case NumberNode numNode:
+            {
+                var number = new Number(numNode.Token.Value);
+                size        = Words.GetTypeSize(number.GetType());
+                instruction = new MovInstruction(new Register(suffix), number);
+                if (suffix != Words.RegisterType.A) return number;
+                return new Register(suffix);
+            }
             case IdentifierNode idNode1:
             {
-                var stack = GetVariableStack(idNode1.Name.Value);
-                return $"\tmov {register}, {stack}";
+                var variable = GetVariable(idNode1.Name.Value);
+                if (variable == null) throw new Exception($"Variable \"{idNode1.Name.Value}\" not found");
+                size        = Words.GetTypeSize(variable.GetType());
+                instruction = new MovInstruction(new Register(suffix), variable);
+                if (suffix != Words.RegisterType.A) return variable;
+                return new Register(suffix);
             }
             case FunctionCallNode functionCall:
             {
                 Visit(functionCall);
-                return null;
+                var function = this._functions.Find(x => x.Declaration.Name.Value == functionCall.Name.Value);
+                if (function == null) throw new Exception($"Function \"{functionCall.Name.Value}\" not found");
+                size        = Words.GetTypeSize(function.Declaration.ReturnType.Value);
+                instruction = null;
+                return new Register(suffix);
             }
-            default: throw new Exception("Unsupported operand type");
+            default:
+            {
+                throw new Exception("Unsupported operand type");
+            }
         }
-    }
-
-
-    private string PerformOperation(OperatorNode op)
-    {
-        switch (op.OperatorToken.Value) {
-            case "+": return "\tadd eax, ebx";
-            case "-": return "\tsub eax, ebx";
-            case "*": return "\timul eax, ebx";
-            case "/": return "\tidiv ebx";
-            default:  throw new NotSupportedException($"The operator {op.OperatorToken.Value} is not supported");
-        }
-    }
-
-
-    private string AssignResult(string operation, AssignmentNode assignmentNode)
-    {
-        AppendLine(operation);
-        AppendLine(
-            $"\tmov {GetVariableStack(assignmentNode.Name.Value)}, eax",
-            $"Store the result in \"{assignmentNode.Name.Value}\""
-        );
-        return assignmentNode.Name.Value;
-    }
-
-
-    private string TempResult(string operation)
-    {
-        var tempName = $"__temp{this._tempCounter++}";
-        CreateVariable(tempName, "eax");
-        return tempName;
     }
 }

@@ -1,8 +1,11 @@
-﻿void sum() {
-    return 5 + 3;
+﻿func sum() int {
+    return 10;
 }
 
-void main() {
-    int a = sum();
-    return a;
+func main() int {
+    short a = 5;
+    short b = 10;
+    short c = 15;
+    
+    return a + b + sum() + c;
 }

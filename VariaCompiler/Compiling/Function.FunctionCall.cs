@@ -1,4 +1,5 @@
-﻿using VariaCompiler.Parsing.Nodes;
+﻿using VariaCompiler.Compiling.Instructions;
+using VariaCompiler.Parsing.Nodes;
 
 
 namespace VariaCompiler.Compiling;
@@ -7,46 +8,95 @@ public partial class Function
 {
     private void Visit(FunctionCallNode functionCall)
     {
-        var args = new[] {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
+        var args     = new[] {Words.RegisterType.DI, Words.RegisterType.SI, Words.RegisterType.D, Words.RegisterType.C};
+        var function = this._functions.Find(x => x.Declaration.Name.Value == functionCall.Name.Value);
 
-        HandleFunctionCallArguments(functionCall, args);
-        HandleArgumentTypes(functionCall, args);
+        if (function == null) throw new Exception($"Function \"{functionCall.Name.Value}\" not found");
+        HandleFunctionCallArguments(functionCall, function.Declaration, args);
+        HandleArgumentTypes(functionCall, function.Declaration, args);
 
-        AppendLine("\tcall " + functionCall.Name.Value);
+        this._instructions.Add(new CallInstruction(functionCall.Name.Value));
     }
 
 
-    private void HandleFunctionCallArguments(FunctionCallNode functionCall, string[] args)
+    private void HandleFunctionCallArguments(
+        FunctionCallNode                  functionCall,
+        FunctionDeclarationNode           functionDeclaration,
+        IReadOnlyList<Words.RegisterType> args
+    )
     {
         for (var index = 0; index < functionCall.Arguments.Count; index++) {
             var argument = functionCall.Arguments[index];
             if (argument is not FunctionCallNode functionCallNode) continue;
             Visit(functionCallNode);
-            AppendLine($"\tmov {args[index]}, eax");
+            this._instructions.Add(
+                new MovInstruction(
+                    new Register(
+                        args[index],
+                        Words.GetTypeSize(functionDeclaration.Parameters[index].Type.Value)
+                    ),
+                    new Register(Words.RegisterType.A)
+                )
+            );
         }
     }
 
 
-    private void HandleArgumentTypes(FunctionCallNode functionCall, string[] args)
+    private void HandleArgumentTypes(
+        FunctionCallNode                  functionCall,
+        FunctionDeclarationNode           functionDeclaration,
+        IReadOnlyList<Words.RegisterType> args
+    )
     {
         for (var index = 0; index < functionCall.Arguments.Count; index++) {
             var argument = functionCall.Arguments[index];
+
             switch (argument) {
                 case NumberNode numNode:
                 {
-                    AppendLine($"\tmov {args[index]}, {numNode.Token.Value}");
+                    var result = new Number(numNode.Token.Value);
+                    this._instructions.Add(
+                        new MovInstruction(
+                            new Register(
+                                args[index],
+                                Words.GetTypeSize(functionDeclaration.Parameters[index].Type.Value)
+                            ),
+                            result
+                        )
+                    );
                     break;
                 }
                 case IdentifierNode idNode:
                 {
-                    var stack = GetVariableStack(idNode.Name.Value);
-                    AppendLine($"\tmov {args[index]}, {stack}");
+                    var variable = GetVariable(idNode.Name.Value);
+                    if (variable == null) throw new Exception($"Variable \"{idNode.Name.Value}\" not found");
+                    this._instructions.Add(
+                        new MovInstruction(
+                            new Register(
+                                args[index],
+                                Words.GetTypeSize(functionDeclaration.Parameters[index].Type.Value)
+                            ),
+                            variable
+                        )
+                    );
                     break;
                 }
                 case OperatorNode operatorNode:
                 {
-                    Visit(operatorNode, null, true);
-                    AppendLine($"\tmov {args[index]}, eax");
+                    var register = new Register(
+                        Words.RegisterType.A,
+                        Words.GetTypeSize(functionDeclaration.Parameters[index].Type.Value)
+                    );
+                    Visit(operatorNode, register);
+                    this._instructions.Add(
+                        new MovInstruction(
+                            new Register(
+                                args[index],
+                                Words.GetTypeSize(functionDeclaration.Parameters[index].Type.Value)
+                            ),
+                            register
+                        )
+                    );
                     break;
                 }
             }

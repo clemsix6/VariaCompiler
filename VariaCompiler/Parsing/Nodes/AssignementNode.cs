@@ -5,14 +5,16 @@ namespace VariaCompiler.Parsing.Nodes;
 
 public class AssignmentNode : Node
 {
-    public Token Name       { get; }
-    public Node  Expression { get; }
+    public Token  Name       { get; }
+    public Token? Type       { get; }
+    public Node   Expression { get; }
 
 
-    public AssignmentNode(Token name, Node expression)
+    public AssignmentNode(Token name, Node expression, Token? type = null)
     {
         this.Name       = name;
         this.Expression = expression;
+        this.Type       = type;
     }
 
 

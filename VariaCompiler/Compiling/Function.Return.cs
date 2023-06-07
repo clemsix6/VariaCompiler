@@ -1,4 +1,5 @@
-﻿using VariaCompiler.Parsing.Nodes;
+﻿using VariaCompiler.Compiling.Instructions;
+using VariaCompiler.Parsing.Nodes;
 
 
 namespace VariaCompiler.Compiling;
@@ -12,21 +13,37 @@ public partial class Function
         switch (expression) {
             case NumberNode:
             {
-                AppendLine($"\tmov eax, {(returnNode.Expression as NumberNode)?.Token.Value}");
+                this._instructions.Add(
+                    new MovInstruction(
+                        new Register(
+                            Words.RegisterType.A,
+                            Words.GetTypeSize(this.Declaration.ReturnType.Value)
+                        ),
+                        new Number((returnNode.Expression as NumberNode)!.Token.Value)
+                    )
+                );
                 break;
             }
             case IdentifierNode identifier:
             {
-                var stack = GetVariableStack(identifier.Name.Value);
-                AppendLine(
-                    $"\n\tmov eax, {stack}",
-                    $"Copy value of \"{identifier.Name.Value}\" to eax for return"
+                var variable = GetVariable(identifier.Name.Value);
+                if (variable == null) throw new Exception($"Variable \"{variable}\" not found");
+                this._instructions.Add(
+                    new MovInstruction(
+                        new Register(
+                            Words.RegisterType.A,
+                            Words.GetTypeSize(this.Declaration.ReturnType.Value)
+                        ),
+                        variable,
+                        $"Copy value of \"{identifier.Name.Value}\" to ?ax for return"
+                    )
                 );
                 break;
             }
             case OperatorNode opNode:
             {
-                Visit(opNode, null, true);
+                var register = new Register(Words.RegisterType.A, Words.GetTypeSize(this.Declaration.ReturnType.Value));
+                Visit(opNode, register);
                 break;
             }
             case FunctionCallNode functionCall:
@@ -36,7 +53,7 @@ public partial class Function
             }
         }
 
-        AppendLine("\n\tpop rbp");
-        AppendLine("\tret");
+        this._instructions.Add(new PopInstruction(new Register(Words.RegisterType.BP)));
+        this._instructions.Add(new RetInstruction());
     }
 }
