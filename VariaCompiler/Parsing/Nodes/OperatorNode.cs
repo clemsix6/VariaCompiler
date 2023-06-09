@@ -9,6 +9,8 @@ public class OperatorNode : Node
     public Node  Left          { get; private set; }
     public Node  Right         { get; private set; }
 
+    public bool IsPriority => this.OperatorToken.Value == "*" || this.OperatorToken.Value == "/";
+
 
     public OperatorNode(Token operatorToken, Node left, Node right)
     {

@@ -2,7 +2,7 @@
 
 public abstract class Instruction
 {
-    public string? Comment { get; }
+    public string? Comment { get; set; }
 
 
     public Instruction()
@@ -23,4 +23,7 @@ public abstract class Instruction
         var len = line.Where(x => x != '\n').Select(x => x == '\t' ? 8 : 1).Sum();
         return $"{line}{new string(' ', 60 - len)}\t# {this.Comment}";
     }
+
+
+    public abstract void Build(Function function, List<Instruction> instructions);
 }

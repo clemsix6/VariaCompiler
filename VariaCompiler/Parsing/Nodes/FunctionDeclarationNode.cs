@@ -9,6 +9,7 @@ public class FunctionDeclarationNode : Node
     public Token               Name       { get; }
     public List<ParameterNode> Parameters { get; }
     public BlockNode           Body       { get; }
+    public bool                IsMain     => this.Name.Value == "main";
 
 
     public FunctionDeclarationNode(Token returnType, Token name, List<ParameterNode> parameters, BlockNode body)

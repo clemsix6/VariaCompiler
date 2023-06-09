@@ -32,7 +32,7 @@ public partial class Function
     private void AddHeader()
     {
         var name = this.Declaration.Name.Value;
-        if (name == "main") this._instructions.Add(new GlobalInstruction(name));
+        if (this.Declaration.IsMain) this._instructions.Add(new GlobalInstruction(name));
         this._instructions.Add(new ProcedureInstruction(name));
         this._instructions.Add(new PushInstruction(new Register(Words.RegisterType.BP)));
         this._instructions.Add(
@@ -46,7 +46,7 @@ public partial class Function
         var stackSize = this._variables.Sum(x => x.Size);
         stackSize = (int) Math.Ceiling(stackSize / 16.0) * 16;
         this._instructions.Insert(
-            3,
+            this.Declaration.IsMain ? 4 : 3,
             new OperationInstruction(new Register(Words.RegisterType.SP), new Number(stackSize), "sub", "Move stack")
         );
         this._instructions.Insert(
@@ -84,6 +84,9 @@ public partial class Function
 
     public override string ToString()
     {
+        Console.WriteLine("Building...\n");
+        foreach (var instruction in new List<Instruction>(this._instructions))
+            instruction.Build(this, this._instructions);
         var builder = new StringBuilder();
         foreach (var instruction in this._instructions) builder.AppendLine(instruction.ToString());
         return builder.ToString();

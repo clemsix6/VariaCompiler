@@ -1,9 +1,12 @@
-﻿namespace VariaCompiler.Compiling.Instructions.Operations;
+﻿using VariaCompiler.Parsing.Nodes;
+
+
+namespace VariaCompiler.Compiling.Instructions.Operations;
 
 public class OperationInstruction : Instruction
 {
-    public Ptr    Destination { get; }
-    public Ptr    Source      { get; }
+    public Ptr    Destination { get; private set; }
+    public Ptr    Source      { get; private set; }
     public string Operation   { get; }
 
 
@@ -41,8 +44,51 @@ public class OperationInstruction : Instruction
     }
 
 
+    private void AddAutoComment()
+    {
+        var source      = this.Source.GetIdentifier(true);
+        var destination = this.Destination.GetIdentifier(true);
+
+        switch (this.Operation) {
+            case "add":
+                this.Comment = $"Add {source} to {destination}";
+                break;
+            case "sub":
+                this.Comment = $"Subtract {source} from {destination}";
+                break;
+            case "imul":
+                this.Comment = $"Multiply {source} by {destination}";
+                break;
+            case "idiv":
+                this.Comment = $"Divide {destination} by {source}";
+                break;
+            default: throw new Exception($"Unknown operation: {this.Operation}");
+        }
+    }
+
+
+    private void AdjustSize(List<Instruction> instructions)
+    {
+        if (this.Source.Size == this.Destination.Size || this.Source is Number) return;
+        if (this.Source is Register) {
+            this.Source = new Register(Words.RegisterType.B, this.Destination.Size);
+            return;
+        }
+
+        if (this.Source is Variable variable)
+            this.Source = new Variable(variable.Name, variable.Type, variable.Stack, this.Destination.Size);
+    }
+
+
+    public override void Build(Function function, List<Instruction> instructions)
+    {
+        AdjustSize(instructions);
+    }
+
+
     public override string ToString()
     {
+        if (this.Comment == null) AddAutoComment();
         return AppendComment($"\t{this.Operation}\t{this.Destination}, {this.Source}");
     }
 }

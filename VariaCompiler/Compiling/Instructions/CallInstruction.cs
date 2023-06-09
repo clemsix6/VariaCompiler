@@ -17,8 +17,18 @@ public class CallInstruction : Instruction
     }
 
 
+    private void AddAutoComment()
+    {
+        this.Comment = $"Call {this.Name} function";
+    }
+
+
+    public override void Build(Function function, List<Instruction> instructions) { }
+
+
     public override string ToString()
     {
+        if (this.Comment == null) AddAutoComment();
         return AppendComment($"\tcall\t{this.Name}");
     }
 }

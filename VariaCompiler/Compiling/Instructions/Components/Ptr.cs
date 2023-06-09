@@ -4,7 +4,11 @@ public abstract class Ptr
 {
     public int Size { get; protected set; }
 
+    public bool IsAssignable => this is Variable || this is Register;
+
     public abstract string GetType();
+
+    public abstract string GetIdentifier(bool format = false);
 
 
     public override bool Equals(object? obj)

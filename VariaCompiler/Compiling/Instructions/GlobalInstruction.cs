@@ -11,6 +11,9 @@ public class GlobalInstruction : Instruction
     }
 
 
+    public override void Build(Function function, List<Instruction> instructions) { }
+
+
     public override string ToString()
     {
         return $".globl {this.Name}";

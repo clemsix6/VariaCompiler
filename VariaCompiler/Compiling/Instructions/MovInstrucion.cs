@@ -20,7 +20,16 @@ public class MovInstruction : Instruction
     }
 
 
-    public override string ToString()
+    private void AddAutoComment()
+    {
+        var source      = this.Source.GetIdentifier(true);
+        var destination = this.Destination.GetIdentifier(true);
+
+        this.Comment = $"Move {source} to {destination}";
+    }
+
+
+    private string Transform()
     {
         var command = string.Empty;
         if (this.Source.Size == this.Destination.Size || this.Source is Number) {
@@ -43,5 +52,15 @@ public class MovInstruction : Instruction
         return AppendComment(
             $"\tmov\t{this.Destination}, {this.Source}"
         );
+    }
+
+
+    public override void Build(Function function, List<Instruction> instructions) { }
+
+
+    public override string ToString()
+    {
+        if (this.Comment == null) AddAutoComment();
+        return Transform();
     }
 }

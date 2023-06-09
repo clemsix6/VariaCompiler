@@ -18,6 +18,7 @@ internal class Program
 
     private static List<Token> Lex(string content)
     {
+        Console.ForegroundColor = ConsoleColor.Magenta;
         Console.WriteLine("Lexing...");
         var lexer  = new Lexer();
         var tokens = lexer.Tokenize(content);
@@ -28,7 +29,8 @@ internal class Program
 
     private static ProgramNode Parse(List<Token> tokens)
     {
-        Console.WriteLine("\n\nParsing...");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("\n\n\nParsing...");
         var parser = new Parser();
         var node   = parser.Parse(tokens);
         node.Visit(0);
@@ -38,10 +40,11 @@ internal class Program
 
     private static string Detail(ProgramNode node)
     {
-        Console.WriteLine("\n\nDetailing...");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine("\n\n\nDetailing...");
         var detailer = new Detailer();
         var details  = detailer.Compile(node);
-        Console.WriteLine("\n\nDetails:\n" + details);
+        Console.WriteLine(details);
         return details;
     }
 }

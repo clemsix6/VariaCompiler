@@ -1,4 +1,7 @@
-﻿namespace VariaCompiler.Compiling;
+﻿using VariaCompiler.Compiling.Instructions;
+
+
+namespace VariaCompiler.Compiling;
 
 public static class Words
 {
@@ -21,6 +24,27 @@ public static class Words
         R14,
         R15
     }
+
+
+    public static Dictionary<RegisterType, Register> registers = new()
+    {
+        {RegisterType.A, new Register(RegisterType.A)},
+        {RegisterType.C, new Register(RegisterType.C)},
+        {RegisterType.D, new Register(RegisterType.D)},
+        {RegisterType.B, new Register(RegisterType.B)},
+        {RegisterType.SP, new Register(RegisterType.SP)},
+        {RegisterType.BP, new Register(RegisterType.BP)},
+        {RegisterType.SI, new Register(RegisterType.SI)},
+        {RegisterType.DI, new Register(RegisterType.DI)},
+        {RegisterType.R8, new Register(RegisterType.R8)},
+        {RegisterType.R9, new Register(RegisterType.R9)},
+        {RegisterType.R10, new Register(RegisterType.R10)},
+        {RegisterType.R11, new Register(RegisterType.R11)},
+        {RegisterType.R12, new Register(RegisterType.R12)},
+        {RegisterType.R13, new Register(RegisterType.R13)},
+        {RegisterType.R14, new Register(RegisterType.R14)},
+        {RegisterType.R15, new Register(RegisterType.R15)}
+    };
 
 
     public static string GetWordType(string type)

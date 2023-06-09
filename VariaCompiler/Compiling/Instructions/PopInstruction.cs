@@ -17,8 +17,20 @@ public class PopInstruction : Instruction
     }
 
 
+    private void AddAutoComment()
+    {
+        var element = this.Element.GetIdentifier(true);
+
+        this.Comment = $"Pop {element}";
+    }
+
+
+    public override void Build(Function function, List<Instruction> instructions) { }
+
+
     public override string ToString()
     {
+        if (this.Comment == null) AddAutoComment();
         return AppendComment($"\tpop\t{this.Element}");
     }
 }

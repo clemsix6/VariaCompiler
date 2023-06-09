@@ -36,10 +36,16 @@ public class Number : Ptr
     private int GetTypeSize()
     {
         switch (long.Parse(this.number)) {
-            case < short.MaxValue: return 2;
-            case < int.MaxValue:   return 4;
-            default:               return 8;
+            case < int.MaxValue: return 4;
+            default:             return 8;
         }
+    }
+
+
+    public override string GetIdentifier(bool format = false)
+    {
+        if (format) return $"({ToString()})";
+        return ToString();
     }
 
 

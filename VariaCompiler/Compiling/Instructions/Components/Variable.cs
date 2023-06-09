@@ -22,6 +22,13 @@ public class Variable : Ptr
     }
 
 
+    public override string GetIdentifier(bool format = false)
+    {
+        if (format) return $"\"{this.Name}\"";
+        return this.Name;
+    }
+
+
     public override string ToString()
     {
         return $"{Words.GetWordType(this.Size)} ptr [rbp-{this.Stack}]";

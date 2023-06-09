@@ -32,6 +32,13 @@ public class Register : Ptr
     }
 
 
+    public override string GetIdentifier(bool format = false)
+    {
+        if (format) return $"({ToString().ToUpper()})";
+        return ToString();
+    }
+
+
     public override string ToString()
     {
         return Words.GetRegisterName(this.Type, this.Size);
